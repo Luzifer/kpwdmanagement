@@ -1,0 +1,146 @@
+#list {
+	position: absolute;
+	left: 0px;
+	top: 30px;
+	width: 200px;
+	height: 470px;
+	border-right: 1px solid black;
+}
+
+#main {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 700px;
+	height: 500px;
+	border: 1px solid black;
+}
+
+#content {
+	position: absolute;
+	left: 200px;
+	top: 30px;
+	width: 500px;
+	height: 470px;
+	overflow: auto;
+	
+}
+
+#title {
+	width: 700px;
+	height: 30px;
+	font-size: 14pt;
+	color: #000;
+	font-family: sans-serif;
+	font-weight: bold;
+	letter-spacing: 5px;
+	border-bottom: 1px solid black;
+	background: #dddddd;
+}
+
+#rt {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+	text-align: center;
+}
+
+#loginwin {
+	position: absolute;
+	left: 225px;
+	width: 250px;
+	height: 100px;
+	border: 1px solid black;
+	top: 200px;
+	background: #ffffff;
+}
+
+.boxtitle {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	background: #dddddd;
+	width: 100%;
+	border-bottom: 1px solid black;
+	font-weight: bold;
+	text-align: center;
+	height: 15px;
+	line-height: 15px;
+}
+
+body {
+	font-size: 10pt;
+	font-family: sans-serif;
+}
+
+input, textarea {
+	border: 1px dotted black;
+}
+
+#okbtn {
+	position: absolute;
+	left: 0px;
+	bottom: 1px;
+	width: 100%;
+	text-align: center;
+	cursor: pointer;
+}
+
+.btn {
+	cursor: pointer;
+}
+
+#messagebox {
+	position: absolute;
+	left: 225px;
+	width: 250px;
+	height: 100px;
+	border: 1px solid black;
+	top: 200px;
+	background: #ffffff;
+	display: none;
+}
+
+#toolbar {
+	height: 20px;
+	width: 100%;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	background: #eeeeee;
+	border-top: 1px solid black;
+	border-bottom: 1px solid #cccccc;
+}
+
+#toolbar img {
+	position: relative;
+	top: 2px;
+	left: 2px;
+}
+
+#listcontent {
+	position: absolute;
+	left: 0px;
+	top: 23px;
+	width: 200px;
+	height: 447px;
+	overflow: auto;
+}
+
+#content input, #content textarea {
+	width: 100%;
+}
+
+#content textarea {
+	height: 300px;
+}
+
+#content td {
+	vertical-align: top;
+}
+
+.savebtn {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+}

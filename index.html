@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+        "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+		<script language="JavaScript" src="script.js"></script>
+		<title>Knutshome.de - Passwortverwaltung</title>
+	</head>
+	<body onload="Init();">
+		<div id="main">
+			<div id="title">
+				<span id="rt">Knutshome.de - Passwortverwaltung</span>
+			</div>
+			<div id="list">
+				<div id="toolbar">
+					<img src="page_add.png" class="btn" onclick="AddEntry();" title="Neuer Datensatz" />
+					<img src="page_delete.png" class="btn" onclick="DeleteEntry();" title="Datensatz löschen" />
+					<img src="page_edit.png" class="btn" onclick="EditEntry();" title="Datensatz ändern" />
+					<img src="page_refresh.png" class="btn" onclick="LoadEntries();" title="Liste neu laden" />
+					<img src="spacer.gif" style="width: 55px; height: 16px;" />
+					<img src="key.png" class="btn" onclick="ChangePwdForm();" title="Passwort ändern" />
+					<img src="information.png" class="btn" onclick="ShowAppInfo();" title="Anwendungsinformationen" />
+					<img src="door_open.png" class="btn" onclick="Logout();" title="Logout" />
+				</div>
+				<div id="listcontent">
+				</div>
+			</div>
+			<div id="content">
+			</div>
+			<div id="loginwin">
+				<span class="boxtitle">Login</span>
+				<img src="spacer.gif" style="height: 23px; width: 100%;" />
+				<table style="width: 100%;">
+					<tr>
+						<td>Benutzer:</td><td><input type="text" id="user" /></td>
+					</tr>
+					<tr>
+						<td>Passwort:</td><td><input type="password" id="pwd" onkeypress="if(event.keyCode == 13) CheckLogin();" /></td>
+					</tr>
+					<tr>
+						<td colspan="2" style="text-align: center;"><span class="btn" onclick="CheckLogin();">Einloggen...</span></td>
+					</tr>
+				</table>
+			</div>
+			<div id="messagebox">
+				<span class="boxtitle" id="messagetitle">Message</span>
+				<img src="spacer.gif" style="height: 23px; width: 100%;" />
+				<div id="message">
+				</div>
+				<span id="okbtn" onclick="MessageHide();">Ok</span>
+			</div>
+		</div>
+	</body>
+</html>
