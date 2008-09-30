@@ -1,0 +1,37 @@
+###
+# Tiny multi user password management with webbased interface
+#
+# (c) 2007-2008 by K. Ahlers
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
+###
+
+INSTALLATION:
++++++++++++++
+
+1) Upload the data to a directory of your choice
+2) Set up HTTPS access for this directory
+3) Set up a MySQL database for it where no other person can read data
+4) Edit the mysql.inc.php and set up your connection data
+5) Import the structure into the database
+6) Add some users using the database management
+   The fields 'sessionid' and 'ip' can be left empty. They will be filled by
+   the application.
+   The password has to be an md5-hash so you can set this field by using the mysql
+   function MD5().
+
+Have fun with your password management. If you find any bugs or feature improvements
+please report them into my bugtracker found at http://bugs.knut.me
+
+Thank you for using this application.
