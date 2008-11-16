@@ -19,34 +19,21 @@
  * ###
  * */
 
-var XMLHTTP;
 var sessionident;
 var loadedentry;
+var cookiehandler;
 
 
 function Init() {
-	AjaxInit();
 	sessionident = null;
 	loadedentry = null;
-	if(document.cookie && (document.cookie != "")) {
-		sessionident = document.cookie;
+	cookiehandler = new wp_Cookie({
+		expires : 60
+	});
+	if(cookiehandler.get('kpwdsession') != null) {
+		sessionident = cookiehandler.get('kpwdsession');
 		document.getElementById('loginwin').style.display = "none";
 		LoadEntries();
-	}
-}
-
-function AjaxInit() {
-	if(window.XMLHttpRequest) {
-		XMLHTTP = new XMLHttpRequest();
-	} else if(window.ActiveXObject) {
-		try{
-			XMLHTTP = new ActiveXObject("Msxml2.XMLHTTP");
-		} catch(ex) {
-			try{
-				XMLHTTP = new ActiveXObject("Microsoft.XMLHTTP");
-			} catch(ex) {
-			}
-		}
 	}
 }
 
@@ -72,67 +59,65 @@ function MessageHide() {
 }
 
 function CheckLogin() {
-	var user = document.getElementById('user').value;
-	var pwd = document.getElementById('pwd').value;
+	var user = $('user').value;
+	var pwd = $('pwd').value;
 	
-	XMLHTTP.open('GET', 'login.php?user='+user+'&pwd='+pwd);
-	XMLHTTP.onreadystatechange = ProcessLogin;
-	XMLHTTP.send(null);
-}
-
-function ProcessLogin() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-			sessionident = XMLHTTP.responseXML.getElementsByTagName('sid')[0].firstChild.nodeValue;
-			document.cookie = sessionident;
-			document.getElementById('loginwin').style.display = "none";
-			LoadEntries();
-		} else {
-			ShowMessageBox('Fehler', 'Der Login war falsch. Bitte die Eingaben prüfen.', 250, 100);
+	new Ajax.Request('login.php?user='+user+'&pwd='+pwd, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				sessionident = xml.getElementsByTagName('sid')[0].firstChild.nodeValue;
+				cookiehandler.set('kpwdsession', sessionident);
+				$('loginwin').style.display = 'none';
+				LoadEntries();
+			} else {
+				ShowMessageBox('Fehler', 'Der Login war falsch. Bitte die Eingaben prüfen.', 250, 100);
+			}
 		}
-	}
+	});
 }
 
 function LoadEntries() {
 	if(!IsLoggedIn())
 		return;
-	document.getElementById('content').innerHTML = '';
-	XMLHTTP.open('GET', 'listentries.php?sid='+sessionident);
-	XMLHTTP.onreadystatechange = WriteEntryList;
-	XMLHTTP.send(null);
-}
+	
+	$('content').innerHTML = '';
+	
+	new Ajax.Request('listentries.php?sid='+sessionident, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				var entries = xml.getElementsByTagName('entry');
+				
+				var html = "<table cellspacing=\"0\" style=\"width: 100%;\">";
+				for(var i = 0; i < entries.length; i++) {
+					var entry = entries[i];
 
-function WriteEntryList() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-			var entries = XMLHTTP.responseXML.getElementsByTagName('entry');
-			
-			var html = "<table cellspacing=\"0\" style=\"width: 100%;\">";
-			for(var i = 0; i < entries.length; i++) {
-				var entry = entries[i];
-				
-				var onclick = 'onclick="LoadEntryDetail('+entry.getAttribute('id')+');"';
-				
-				html += '<tr name="entryline" id="entry'+entry.getAttribute('id')+'">' +
-				'<td class="btn" '+onclick+' style="width:18px;"><img src="page.png" '+onclick+' class="btn" /></td>' +
-				'<td class="btn" '+onclick+'>'+unescape(entry.firstChild.nodeValue)+'</td>' +
-				'</tr>';
+					var onclick = 'onclick="LoadEntryDetail('+entry.getAttribute('id')+');"';
+
+					html += '<tr name="entryline" id="entry'+entry.getAttribute('id')+'">' +
+					'<td class="btn" '+onclick+' style="width:18px;"><img src="page.png" '+onclick+' class="btn" /></td>' +
+					'<td class="btn" '+onclick+'>'+unescape(entry.firstChild.nodeValue)+'</td>' +
+					'</tr>';
+				}
+				html += "</table>";
+				$('listcontent').innerHTML = html;
+
+				if(loadedentry != null)
+					LoadEntryDetail(loadedentry);
+			} else if(state == "1") {
+				ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
+				sessionident = null;
+				ShowLoginWin();
+			} else {
+				ShowMessageBox('Fehler', 'Bei der Abfrage der Einträge ist ein Fehler aufgetreten.', 250, 100);
 			}
-			html += "</table>";
-			document.getElementById('listcontent').innerHTML = html;
-			
-			if(loadedentry != null)
-				LoadEntryDetail(loadedentry);
-		} else if(state == "1") {
-			ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
-			sessionident = null;
-			ShowLoginWin();
-		} else {
-			ShowMessageBox('Fehler', 'Bei der Abfrage der Einträge ist ein Fehler aufgetreten.', 250, 100);
 		}
-	}
+	});
 }
 
 function IsLoggedIn() {
@@ -145,12 +130,12 @@ function IsLoggedIn() {
 }
 
 function ShowLoginWin() {
-	document.getElementById('loginwin').style.display = "block";
-	document.getElementById('listcontent').innerHTML = "";
+	$('loginwin').style.display = "block";
+	$('listcontent').innerHTML = "";
 }
 
 function ShowAppInfo() {
-	ShowMessageBox('Über Passwortverwaltung', '<a href="http://github.com/luzifer/kpwdmanagement" target="_blank">KPWDManagement</a> v.1.0<br /><br />'+
+	ShowMessageBox('Über Passwortverwaltung', '<a href="http://github.com/luzifer/kpwdmanagement" target="_blank">KPWDManagement</a> v.2.0<br /><br />'+
 		'&copy; 2007-2008 by Knut Ahlers<br />E-Mail: info@knutshome.de<br />'+
 		'WWW: www.knutshome.de<br /><br />Die verwendeten Icons kommen von:<br />'+
 		'<a href="http://www.famfamfam.com" target="_blank">www.famfamfam.com</a>', 280, 180);
@@ -160,54 +145,42 @@ function LoadEntryDetail(id) {
 	if(!IsLoggedIn())
 		return;
 	
-	/*var lines = document.getElementsByName('entryline');
-	for(var i = 0; i < lines.length; i++) {
-			lines[i].style.background = '#ffffff';
-	}*/
 	if(loadedentry != null)
-		document.getElementById('entry'+loadedentry).style.background = '#ffffff';
-	document.getElementById('entry'+id).style.background = '#cccccc';
+		$('entry'+loadedentry).style.background = '#ffffff';
+	$('entry'+id).style.background = '#cccccc';
 	loadedentry = id;
 	
-	XMLHTTP.open('GET', 'entrydetail.php?sid='+sessionident+'&id='+id);
-	XMLHTTP.onreadystatechange = WriteEntryDetail;
-	XMLHTTP.send(null);
-	
-}
+	new Ajax.Request('entrydetail.php?sid='+sessionident+'&id='+id, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				var id = xml.getElementsByTagName('id')[0].firstChild != null ? xml.getElementsByTagName('id')[0].firstChild.nodeValue : "";
+				var titel = xml.getElementsByTagName('titel')[0].firstChild != null ? unescape(xml.getElementsByTagName('titel')[0].firstChild.nodeValue) : "";
+				var username = xml.getElementsByTagName('username')[0].firstChild != null ? unescape(xml.getElementsByTagName('username')[0].firstChild.nodeValue) : "";
+				var password = xml.getElementsByTagName('password')[0].firstChild != null ? unescape(xml.getElementsByTagName('password')[0].firstChild.nodeValue) : "";
+				var url = xml.getElementsByTagName('url')[0].firstChild != null ? unescape(xml.getElementsByTagName('url')[0].firstChild.nodeValue) : "";
+				var notiz = xml.getElementsByTagName('notiz')[0].firstChild != null ? unescape(xml.getElementsByTagName('notiz')[0].firstChild.nodeValue) : "";
 
-function WriteEntryDetail() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-		
-			var id = GetXMLHTTPnodeValue('id');
-			var titel = unescape(GetXMLHTTPnodeValue('titel'));
-			var username = unescape(GetXMLHTTPnodeValue('username'));
-			var password = unescape(GetXMLHTTPnodeValue('password'));
-			var url = unescape(GetXMLHTTPnodeValue('url'));
-			var notiz = unescape(GetXMLHTTPnodeValue('notiz'));
-		
-			var html = '<table style="width: 100%;">'+
-				'<tr><td style="width: 150px;"><b>Titel des Eintrags:</b></td><td><span id="ct_titel">'+titel+'</span></td></tr>' +
-				'<tr><td><b>Benutzername:</b></td><td><span id="ct_username">'+username+'</span></td></tr>' +
-				'<tr><td><b>Passwort:</b></td><td><span id="ct_password">'+password+'</span></td></tr>' +
-				'<tr><td><b>URL:</b></td><td id="td_url"><a href="'+url+'" target="_blank"><span id="ct_url">'+url+'</span></a></td></tr>' +
-				'<tr><td><b>Notiz:</b></td><td><span id="ct_notiz">'+notiz.replace(/\n/g, "<br />")+'</span><span id="r_notiz" style="display:none;">'+notiz+'</span></td></tr>' +
-				'</table>';
-			
-			document.getElementById('content').innerHTML = html;
-		} else if(state == "1") {
-			ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
-			sessionident = null;
-			ShowLoginWin();
-		} else {
-			ShowMessageBox('Fehler', 'Bei der Abfrage des Eintrags ist ein Fehler aufgetreten.', 250, 100);
-		}
-	}
-}
+				var html = '<table style="width: 100%;">'+
+					'<tr><td style="width: 150px;"><b>Titel des Eintrags:</b></td><td><span id="ct_titel">'+titel+'</span></td></tr>' +
+					'<tr><td><b>Benutzername:</b></td><td><span id="ct_username">'+username+'</span></td></tr>' +
+					'<tr><td><b>Passwort:</b></td><td><span id="ct_password">'+password+'</span></td></tr>' +
+					'<tr><td><b>URL:</b></td><td id="td_url"><a href="'+url+'" target="_blank"><span id="ct_url">'+url+'</span></a></td></tr>' +
+					'<tr><td><b>Notiz:</b></td><td><span id="ct_notiz">'+notiz.replace(/\n/g, "<br />")+'</span><span id="r_notiz" style="display:none;">'+notiz+'</span></td></tr>' +
+					'</table>';
 
-function GetXMLHTTPnodeValue(nodename) {
-	return XMLHTTP.responseXML.getElementsByTagName(nodename)[0].firstChild.nodeValue;
+				$('content').innerHTML = html;
+			} else if(state == "1") {
+				ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
+				sessionident = null;
+				ShowLoginWin();
+			} else {
+				ShowMessageBox('Fehler', 'Bei der Abfrage des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+			}
+		}	
+	});
 }
 
 function EditEntry() {
@@ -245,64 +218,61 @@ function EditEntry() {
 }
 
 function SaveChanges() {
-	var titel = escape(document.getElementById('field_titel').value);
-	var username = escape(document.getElementById('field_username').value);
-	var password = escape(document.getElementById('field_password').value);
-	var url = escape(document.getElementById('field_url').value);
-	var notiz = escape(document.getElementById('field_notiz').value);
+	var titel = escape($('field_titel').value);
+	var username = escape($('field_username').value);
+	var password = escape($('field_password').value);
+	var url = escape($('field_url').value);
+	var notiz = escape($('field_notiz').value);
 	
 	if(url.indexOf('%3A//') == -1)
 		url = 'http%3A//'+url;
 	
-	XMLHTTP.open('GET', 'savechanges.php?sid='+sessionident+'&id='+loadedentry+'&titel='+titel+'&username='+username+'&password='+password+'&url='+url+'&notiz='+notiz);
-	XMLHTTP.onreadystatechange = ProcessSave;
-	XMLHTTP.send(null);
-}
-
-function ProcessSave() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-			LoadEntries();
-		} else if(state == "1") {
-			ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
-			sessionident = null;
-			ShowLoginWin();
-		} else {
-			ShowMessageBox('Fehler', 'Beim Speichern des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+	var url = 'savechanges.php?sid='+sessionident+'&id='+loadedentry+'&titel='+titel+'&username='+username+'&password='+password+'&url='+url+'&notiz='+notiz;
+	new Ajax.Request(url, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				LoadEntries();
+			} else if(state == "1") {
+				ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
+				sessionident = null;
+				ShowLoginWin();
+			} else {
+				ShowMessageBox('Fehler', 'Beim Speichern des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+			}
 		}
-	}
+	});
 }
 
 function Logout() {
 	sessionident = null;
-	document.cookie = "";
+	cookiehandler.remove('kpwdsession');
 	window.location.reload();
 }
 
 function AddEntry() {
 	if(!IsLoggedIn())
 		return;
-	XMLHTTP.open('GET', 'createentry.php?sid='+sessionident);
-	XMLHTTP.onreadystatechange = CallNewEntry;
-	XMLHTTP.send(null);
-}
-
-function CallNewEntry() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-			var newid = XMLHTTP.responseXML.getElementsByTagName('newid')[0].firstChild.nodeValue;
-			loadedentry = newid;
-			LoadEntries();
-		} else if(state == "1") {
-			ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
-			sessionident = null;
-			ShowLoginWin();
-		} else {
-			ShowMessageBox('Fehler', 'Beim Anlegen des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+	new Ajax.Request('createentry.php?sid='+sessionident, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				var newid = xml.getElementsByTagName('newid')[0].firstChild.nodeValue;
+				loadedentry = newid;
+				LoadEntries();
+			} else if(state == "1") {
+				ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
+				sessionident = null;
+				ShowLoginWin();
+			} else {
+				ShowMessageBox('Fehler', 'Beim Anlegen des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+			}
 		}
-	}
+	});
 }
 
 function DeleteEntry() {
@@ -315,22 +285,23 @@ function DeleteEntry() {
 	XMLHTTP.open('GET', 'deleteentry.php?sid='+sessionident+'&id='+loadedentry);
 	XMLHTTP.onreadystatechange = ParseDelete;
 	XMLHTTP.send(null);
-}
-
-function ParseDelete() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-			loadedentry = null;
-			LoadEntries();
-		} else if(state == "1") {
-			ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
-			sessionident = null;
-			ShowLoginWin();
-		} else {
-			ShowMessageBox('Fehler', 'Beim Löschen des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+	new Ajax.Request('deleteentry.php?sid='+sessionident+'&id='+loadedentry, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				loadedentry = null;
+				LoadEntries();
+			} else if(state == "1") {
+				ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
+				sessionident = null;
+				ShowLoginWin();
+			} else {
+				ShowMessageBox('Fehler', 'Beim Löschen des Eintrags ist ein Fehler aufgetreten.', 250, 100);
+			}
 		}
-	}
+	});
 }
 
 function ChangePwdForm() {
@@ -349,32 +320,30 @@ function ChangePwdForm() {
 function ChangePwd() {
 	if(!IsLoggedIn())
 		return;
-	var oldpwd = document.getElementById('oldpwd').value;
-	var newpwd = document.getElementById('newpwd').value;
-	var newpwdwdh = document.getElementById('newpwdwdh').value;
+	var oldpwd = $('oldpwd').value;
+	var newpwd = $('newpwd').value;
+	var newpwdwdh = $('newpwdwdh').value;
 	
 	if(newpwd != newpwdwdh) {
 		ShowMessageBox('Fehler', 'Das neue Passwort stimmt nicht mit seiner Wiederholung überein.', 250, 100);
 		return;
 	}
 	
-	XMLHTTP.open('GET', 'changepwd.php?sid='+sessionident+'&oldpwd='+oldpwd+'&newpwd='+newpwd);
-	XMLHTTP.onreadystatechange = ParsePwdChange;
-	XMLHTTP.send(null);
-}
-
-function ParsePwdChange() {
-	if(XMLHTTP.readyState == 4) {
-		var state = XMLHTTP.responseXML.getElementsByTagName('state')[0].firstChild.nodeValue;
-		if(state == "0") {
-			ShowMessageBox('Passwort geändert', 'Das Passwort wurde erfolgreich geändert.', 250, 100);
-			LoadEntries();
-		} else if(state == "1") {
-			ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
-			sessionident = null;
-			ShowLoginWin();
-		} else {
-			ShowMessageBox('Fehler', 'Beim Ändern des Passworts ist ein Fehler aufgetreten.', 250, 100);
+	new Ajax.Request('changepwd.php?sid='+sessionident+'&oldpwd='+oldpwd+'&newpwd='+newpwd, {
+		method: 'GET',
+		onSuccess: function(transport) {
+			var xml = transport.responseXML;
+			var state = xml.getElementsByTagName('state')[0].firstChild.nodeValue;
+			if(state == "0") {
+				ShowMessageBox('Passwort geändert', 'Das Passwort wurde erfolgreich geändert.', 250, 100);
+				LoadEntries();
+			} else if(state == "1") {
+				ShowMessageBox('Fehler', 'Die Übergebene Session war ungültig. Bitte neu einloggen.', 250, 100);
+				sessionident = null;
+				ShowLoginWin();
+			} else {
+				ShowMessageBox('Fehler', 'Beim Ändern des Passworts ist ein Fehler aufgetreten.', 250, 100);
+			}
 		}
-	}
+	});
 }
