@@ -135,7 +135,7 @@ function ShowLoginWin() {
 }
 
 function ShowAppInfo() {
-	ShowMessageBox('Über Passwortverwaltung', '<a href="http://github.com/luzifer/kpwdmanagement" target="_blank">KPWDManagement</a> v.2.0<br /><br />'+
+	ShowMessageBox('Über Passwortverwaltung', '<a href="http://github.com/luzifer/kpwdmanagement" target="_blank">KPWDManagement</a> v.2.1<br /><br />'+
 		'&copy; 2007-2008 by Knut Ahlers<br />E-Mail: info@knutshome.de<br />'+
 		'WWW: www.knutshome.de<br /><br />Die verwendeten Icons kommen von:<br />'+
 		'<a href="http://www.famfamfam.com" target="_blank">www.famfamfam.com</a>', 280, 180);
