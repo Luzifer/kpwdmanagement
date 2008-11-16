@@ -282,9 +282,6 @@ function DeleteEntry() {
 		ShowMessageBox('Fehler', 'Bitte zuerst einen Datensatz auswählen.', 250, 100);
 		return;
 	}
-	XMLHTTP.open('GET', 'deleteentry.php?sid='+sessionident+'&id='+loadedentry);
-	XMLHTTP.onreadystatechange = ParseDelete;
-	XMLHTTP.send(null);
 	new Ajax.Request('deleteentry.php?sid='+sessionident+'&id='+loadedentry, {
 		method: 'GET',
 		onSuccess: function(transport) {
