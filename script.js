@@ -212,9 +212,8 @@ function EditEntry() {
 	ct_password.innerHTML = '<input type="text" '+onfocus+' '+onblur+' id="field_password" value="'+ct_password.innerHTML+'" />';
 	td_url.innerHTML = '<input type="text" '+onfocus+' '+onblur+' id="field_url" value="'+ct_url.innerHTML+'" />';
 	ct_notiz.innerHTML = '<textarea id="field_notiz" '+onfocus+' '+onblur+'>'+r_notiz.innerHTML+'</textarea>';
-	
-	var content = document.getElementById('content');
-	content.innerHTML = content.innerHTML + '<span class="btn savebtn" onclick="SaveChanges();">Speichern...</span>';
+
+	$('content').innerHTML = $('content').innerHTML + '<span class="btn savebtn" onclick="SaveChanges();">Speichern...</span>';
 }
 
 function SaveChanges() {
